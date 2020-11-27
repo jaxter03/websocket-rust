@@ -13,7 +13,8 @@ use substrate_subxt::sp_runtime::testing::H256;
 use substrate_subxt::sp_runtime::sp_std::str::FromStr;
 use substrate_subxt::polkadex::OrderType::AskLimit;
 
-const UNIT: u128 = 1_000_000_000;
+const UNIT: u128 = 1_000_000_000_000;
+const UNIT_REP: u128 = 1_000_000_000;
 
 // struct Data {
 // e: String,  // Event type
@@ -103,8 +104,8 @@ async fn repetitive_calls(client: Client<NodeTemplateRuntime> ,v: Value, alice_n
     let submit_trade_call = SubmitOrder{
         order_type: if v["m"].as_bool().unwrap() {OrderType::BidLimit} else {OrderType::AskLimit},
         trading_pair: H256::from_str("f28a3c76161b8d5723b6b8b092695f418037c747faa2ad8bc33d8871f720aac9").unwrap(),
-        price: (1000f64*v["p"].to_owned().as_f64().unwrap()).round() as u128 * UNIT,
-        quantity: (1000f64*v["q"].to_owned().as_f64().unwrap()).round() as u128 * UNIT
+        price: (1000f64*v["p"].to_owned().as_f64().unwrap()).round() as u128 * UNIT_REP,
+        quantity: (1000f64*v["q"].to_owned().as_f64().unwrap()).round() as u128 * UNIT_REP
     };
 
 
