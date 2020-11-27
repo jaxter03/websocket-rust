@@ -89,6 +89,8 @@ async fn main() {
 }
 
 async fn repetitive_calls(client: Client<NodeTemplateRuntime> ,v: Value, alice_nonce: u32) -> Result<()>{
+    println!("{}",(1000f64*v["p"].to_owned().as_str().unwrap().parse::<f64>().unwrap()).round() as u128 * UNIT_REP);
+    println!("{}",(1000f64*v["q"].to_owned().as_str().unwrap().parse::<f64>().unwrap()).round() as u128 * UNIT_REP);
     let submit_trade_call = SubmitOrder{
         order_type: if v["m"].as_bool().unwrap() {OrderType::BidLimit} else {OrderType::AskLimit},
         trading_pair: H256::from_str("f28a3c76161b8d5723b6b8b092695f418037c747faa2ad8bc33d8871f720aac9").unwrap(),
