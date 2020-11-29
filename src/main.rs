@@ -31,7 +31,7 @@ const UNIT_REP: u128 = 1_000_000_000;
 
 async fn run() -> Result<()> {
     let client = ClientBuilder::<NodeTemplateRuntime>::new()
-        .set_url("ws://127.0.0.1:9944")
+        .set_url("ws://127.0.0.1:9945")
         .build()
         .await?;
 
