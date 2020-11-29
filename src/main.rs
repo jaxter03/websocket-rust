@@ -37,7 +37,7 @@ async fn run() -> Result<()> {
 
     let mut alice_nonce: u32 = initial_calls(client.clone()).await?;
 
-    let url = env::args().nth(1).unwrap_or_else(|| "wss://stream.binance.com:9443/ws/btcusdt@aggTrade".to_owned());
+    let url = env::args().nth(1).unwrap_or_else(|| "wss://stream.binance.com:9443/ws/dotusdt@aggTrade".to_owned());
     let builder = websocket_lite::ClientBuilder::new(&url)?;
     let mut ws_stream = builder.async_connect().await?;
 
@@ -103,6 +103,7 @@ async fn repetitive_calls(client: Client<NodeTemplateRuntime> ,v: Value, alice_n
     println!(" Trade Placed #{}",result);
     Ok(())
 }
+
 
 async fn initial_calls(client: Client<NodeTemplateRuntime>) -> Result<u32> {
     let mut signer = PairSigner::<NodeTemplateRuntime, _>::new(AccountKeyring::Alice.pair());
