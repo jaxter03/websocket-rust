@@ -61,7 +61,7 @@ async fn run() -> Result<()> {
             Opcode::Text => {
                 let data =  msg.as_text().unwrap();
                 let v: Value = serde_json::from_str(data)?;
-                repetitive_calls(client.clone(),v, alice_nonce).await?;
+                repetitive_calls(client.clone(),v).await?;
                 alice_nonce = alice_nonce +1
             }
             Opcode::Binary =>  {},  // ws_stream.send(msg).await?,
@@ -88,8 +88,7 @@ async fn main() {
         .unwrap();
 }
 
-async fn repetitive_calls(client: Client<NodeTemplateRuntime> ,v: Value, alice_nonce: u32) -> Result<()>{
-    println!("Nonce used: {}",alice_nonce);
+async fn repetitive_calls(client: Client<NodeTemplateRuntime> ,v: Value) -> Result<()>{
     let submit_trade_call = SubmitOrder{
         order_type: if v["m"].as_bool().unwrap() {OrderType::BidLimit} else {OrderType::AskLimit},
         trading_pair: H256::from_str("f28a3c76161b8d5723b6b8b092695f418037c747faa2ad8bc33d8871f720aac9").unwrap(),
@@ -98,7 +97,6 @@ async fn repetitive_calls(client: Client<NodeTemplateRuntime> ,v: Value, alice_n
     };
 
     let mut signer = PairSigner::<NodeTemplateRuntime, _>::new(AccountKeyring::Alice.pair());
-    signer.set_nonce(alice_nonce);
     let result = client.submit(submit_trade_call, &signer).await?;
     println!(" Trade Placed #{}",result);
     Ok(())
