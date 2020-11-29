@@ -1,4 +1,3 @@
-
 use std::env;
 
 use futures::sink::SinkExt;
@@ -30,12 +29,11 @@ const UNIT_REP: u128 = 1_000_000_000;
 // }
 
 async fn run() -> Result<()> {
-    let client = ClientBuilder::<NodeTemplateRuntime>::new()
+    let alice_client = ClientBuilder::<NodeTemplateRuntime>::new()
         .set_url("ws://127.0.0.1:9945")
         .build()
         .await?;
-
-    let mut alice_nonce: u32 = initial_calls(client.clone()).await?;
+    let mut alice_nonce: u32 = initial_calls(alice_client.clone()).await?;
 
     let url = env::args().nth(1).unwrap_or_else(|| "wss://stream.binance.com:9443/ws/btcusdt@aggTrade".to_owned());
     let builder = websocket_lite::ClientBuilder::new(&url)?;
@@ -59,12 +57,12 @@ async fn run() -> Result<()> {
 
         match msg.opcode() {
             Opcode::Text => {
-                let data =  msg.as_text().unwrap();
+                let data = msg.as_text().unwrap();
                 let v: Value = serde_json::from_str(data)?;
-                repetitive_calls(client.clone(),v).await?;
-                alice_nonce = alice_nonce +1
+                repetitive_calls(alice_client.clone(), v, alice_nonce).await?;
+                alice_nonce = alice_nonce + 1
             }
-            Opcode::Binary =>  {},  // ws_stream.send(msg).await?,
+            Opcode::Binary => {}  // ws_stream.send(msg).await?,
             Opcode::Ping => ws_stream.send(Message::pong(msg.into_data())).await?,
             Opcode::Close => {
                 let _ = ws_stream.send(Message::close(None)).await;
@@ -88,17 +86,18 @@ async fn main() {
         .unwrap();
 }
 
-async fn repetitive_calls(client: Client<NodeTemplateRuntime> ,v: Value) -> Result<()>{
-    let submit_trade_call = SubmitOrder{
-        order_type: if v["m"].as_bool().unwrap() {OrderType::BidLimit} else {OrderType::AskLimit},
+async fn repetitive_calls(client: Client<NodeTemplateRuntime>, v: Value, alice_nonce: u32) -> Result<()> {
+    println!("Nonce: {}", alice_nonce);
+    let submit_trade_call = SubmitOrder {
+        order_type: if v["m"].as_bool().unwrap() { OrderType::BidLimit } else { OrderType::AskLimit },
         trading_pair: H256::from_str("f28a3c76161b8d5723b6b8b092695f418037c747faa2ad8bc33d8871f720aac9").unwrap(),
-        price: (1000f64*v["p"].to_owned().as_str().unwrap().parse::<f64>().unwrap()).round() as u128 * UNIT_REP,
-        quantity: (1000f64*v["q"].to_owned().as_str().unwrap().parse::<f64>().unwrap()).round() as u128 * UNIT_REP
+        price: (1000f64 * v["p"].to_owned().as_str().unwrap().parse::<f64>().unwrap()).round() as u128 * UNIT_REP,
+        quantity: (1000f64 * v["q"].to_owned().as_str().unwrap().parse::<f64>().unwrap()).round() as u128 * UNIT_REP,
     };
-
     let mut signer = PairSigner::<NodeTemplateRuntime, _>::new(AccountKeyring::Alice.pair());
+    signer.set_nonce(alice_nonce);
     let result = client.submit(submit_trade_call, &signer).await?;
-    println!(" Trade Placed #{}",result);
+    println!(" Trade Placed #{}", result);
     Ok(())
 }
 
@@ -133,7 +132,7 @@ async fn initial_calls(client: Client<NodeTemplateRuntime>) -> Result<u32> {
     // Register BTC/USD Orderbook
     let register_orderbook_call = RegisterNewOrderbookCall {
         quote_asset_id: 2 as u32,
-        base_asset_id: 1 as u32
+        base_asset_id: 1 as u32,
     };
     signer.set_nonce(alice_nonce);
     let result = client.submit(register_orderbook_call, &signer).await?;
