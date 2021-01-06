@@ -107,30 +107,7 @@ async fn initial_calls(client: Client<NodeTemplateRuntime>) -> Result<u32> {
     let load_key = Pair::from_string("tube soldier vehicle position betray vibrant knife canyon armed accident desk flee",None);
     let mut signer = PairSigner::<NodeTemplateRuntime, _>::new(load_key.unwrap());
 
-    let asset_call = CreateCall {
-        options: AssetOptions {
-            initial_issuance: UNIT * UNIT,
-            permissions: PermissionsV1 {
-                update: Owner::None,
-                mint: Owner::None,
-                burn: Owner::None,
-            },
-        }
-    };
-    let mut alice_nonce: u32 = 0;
-
-    // Create BTC
-    signer.set_nonce(alice_nonce);
-    let result = client.submit(asset_call.clone(), &signer).await?;
-    println!(" Created Asset #1: {}", result);
-    alice_nonce = alice_nonce + 1;
-
-    // Create USD
-    signer.set_nonce(alice_nonce);
-    let result = client.submit(asset_call.clone(), &signer).await?;
-    println!(" Created Asset #1: {}", result);
-    alice_nonce = alice_nonce + 1;
-
+    let mut alice_nonce = 0;
     // Register BTC/USD Orderbook
     let register_orderbook_call = RegisterNewOrderbookCall {
         quote_asset_id: 2 as u32,
