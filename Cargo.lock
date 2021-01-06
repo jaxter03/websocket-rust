@@ -4144,6 +4144,7 @@ dependencies = [
  "openssl",
  "rand 0.7.3",
  "serde_json",
+ "sp-core",
  "sp-keyring",
  "structopt",
  "substrate-subxt",

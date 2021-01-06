@@ -5,11 +5,11 @@ use futures::stream::StreamExt;
 use websocket_lite::{Message, Opcode, Result};
 use serde_json::Value;
 use substrate_subxt::{ClientBuilder, PairSigner, NodeTemplateRuntime, Client};
-use sp_keyring::AccountKeyring;
 use substrate_subxt::generic_asset::{CreateCall, AssetOptions, PermissionsV1, Owner};
 use substrate_subxt::polkadex::{RegisterNewOrderbookCall, OrderType, SubmitOrder};
 use substrate_subxt::sp_runtime::testing::H256;
 use substrate_subxt::sp_runtime::sp_std::str::FromStr;
+use sp_core::{sr25519::Pair, Pair as PairT};
 
 const UNIT: u128 = 1_000_000_000_000;
 const UNIT_REP: u128 = 1_000_000_000;
@@ -30,7 +30,7 @@ const UNIT_REP: u128 = 1_000_000_000;
 
 async fn run() -> Result<()> {
     let alice_client = ClientBuilder::<NodeTemplateRuntime>::new()
-        .set_url("ws://127.0.0.1:9945")
+        .set_url("ws://127.0.0.1:9955")
         .build()
         .await?;
     let mut alice_nonce: u32 = initial_calls(alice_client.clone()).await?;
@@ -94,7 +94,8 @@ async fn repetitive_calls(client: Client<NodeTemplateRuntime>, v: Value, alice_n
         price: (1000f64 * v["p"].to_owned().as_str().unwrap().parse::<f64>().unwrap()).round() as u128 * UNIT_REP,
         quantity: (1000f64 * v["q"].to_owned().as_str().unwrap().parse::<f64>().unwrap()).round() as u128 * UNIT_REP,
     };
-    let mut signer = PairSigner::<NodeTemplateRuntime, _>::new(AccountKeyring::Alice.pair());
+    let load_key = Pair::from_string("tube soldier vehicle position betray vibrant knife canyon armed accident desk flee",None);
+    let mut signer = PairSigner::<NodeTemplateRuntime, _>::new(load_key.unwrap());
     signer.set_nonce(alice_nonce);
     let result = client.submit(submit_trade_call, &signer).await?;
     println!(" Trade Placed #{}", result);
@@ -103,7 +104,8 @@ async fn repetitive_calls(client: Client<NodeTemplateRuntime>, v: Value, alice_n
 
 
 async fn initial_calls(client: Client<NodeTemplateRuntime>) -> Result<u32> {
-    let mut signer = PairSigner::<NodeTemplateRuntime, _>::new(AccountKeyring::Alice.pair());
+    let load_key = Pair::from_string("tube soldier vehicle position betray vibrant knife canyon armed accident desk flee",None);
+    let mut signer = PairSigner::<NodeTemplateRuntime, _>::new(load_key.unwrap());
 
     let asset_call = CreateCall {
         options: AssetOptions {
