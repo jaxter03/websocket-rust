@@ -35,7 +35,7 @@ const UNIT_REP: u128 = 1_000_000_000;
 
 async fn run() -> Result<()> {
     let alice_client = ClientBuilder::<NodeTemplateRuntime>::new()
-        .set_url("ws://127.0.0.1:9955")
+        .set_url("ws://127.0.0.1:9944")
         .build()
         .await?;
     let mut alice_nonce: u32 = initial_calls(alice_client.clone()).await?;
