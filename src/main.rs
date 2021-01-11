@@ -5,13 +5,18 @@ use futures::stream::StreamExt;
 use websocket_lite::{Message, Opcode, Result};
 use serde_json::Value;
 use substrate_subxt::{ClientBuilder, PairSigner, NodeTemplateRuntime, Client};
-use substrate_subxt::generic_asset::{CreateCall, AssetOptions, PermissionsV1, Owner};
 use substrate_subxt::polkadex::{RegisterNewOrderbookCall, OrderType, SubmitOrder};
 use substrate_subxt::sp_runtime::testing::H256;
 use substrate_subxt::sp_runtime::sp_std::str::FromStr;
 use sp_core::{sr25519::Pair, Pair as PairT};
+use substrate_subxt::{
+    balances::{
+        TransferCallExt,
+        TransferEventExt,
+    }};
+use sp_keyring::AccountKeyring;
 
-const UNIT: u128 = 1_000_000_000_000;
+// const UNIT: u128 = 1_000_000_000_000;
 const UNIT_REP: u128 = 1_000_000_000;
 
 // struct Data {
@@ -88,34 +93,35 @@ async fn main() {
 
 async fn repetitive_calls(client: Client<NodeTemplateRuntime>, v: Value, alice_nonce: u32) -> Result<()> {
     println!("Nonce: {}", alice_nonce);
-    let submit_trade_call = SubmitOrder {
-        order_type: if v["m"].as_bool().unwrap() { OrderType::BidLimit } else { OrderType::AskLimit },
-        trading_pair: H256::from_str("f28a3c76161b8d5723b6b8b092695f418037c747faa2ad8bc33d8871f720aac9").unwrap(),
-        price: (1000f64 * v["p"].to_owned().as_str().unwrap().parse::<f64>().unwrap()).round() as u128 * UNIT_REP,
-        quantity: (1000f64 * v["q"].to_owned().as_str().unwrap().parse::<f64>().unwrap()).round() as u128 * UNIT_REP,
-    };
-    let load_key = Pair::from_string("tube soldier vehicle position betray vibrant knife canyon armed accident desk flee",None);
-    let mut signer = PairSigner::<NodeTemplateRuntime, _>::new(load_key.unwrap());
+    // let submit_trade_call = SubmitOrder {
+    //     order_type: if v["m"].as_bool().unwrap() { OrderType::BidLimit } else { OrderType::AskLimit },
+    //     trading_pair: H256::from_str("f28a3c76161b8d5723b6b8b092695f418037c747faa2ad8bc33d8871f720aac9").unwrap(),
+    //     price: (1000f64 * v["p"].to_owned().as_str().unwrap().parse::<f64>().unwrap()).round() as u128 * UNIT_REP,
+    //     quantity: (1000f64 * v["q"].to_owned().as_str().unwrap().parse::<f64>().unwrap()).round() as u128 * UNIT_REP,
+    // };
+    // let load_key = Pair::from_string("tube soldier vehicle position betray vibrant knife canyon armed accident desk flee",None);
+    let mut signer = PairSigner::<NodeTemplateRuntime, _>::new(AccountKeyring::Alice.pair());
+    let dest = AccountKeyring::Bob.to_account_id().into();
     signer.set_nonce(alice_nonce);
-    let result = client.submit(submit_trade_call, &signer).await?;
-    println!(" Trade Placed #{}", result);
+    let result = client.transfer(&signer, &dest, 10_000).await?;
+    println!(" Transaction Placed #{}", result);
     Ok(())
 }
 
 
 async fn initial_calls(client: Client<NodeTemplateRuntime>) -> Result<u32> {
-    let load_key = Pair::from_string("tube soldier vehicle position betray vibrant knife canyon armed accident desk flee",None);
-    let mut signer = PairSigner::<NodeTemplateRuntime, _>::new(load_key.unwrap());
-
-    let mut alice_nonce = 0;
-    // Register BTC/USD Orderbook
-    let register_orderbook_call = RegisterNewOrderbookCall {
-        quote_asset_id: 2 as u32,
-        base_asset_id: 1 as u32,
-    };
-    signer.set_nonce(alice_nonce);
-    let result = client.submit(register_orderbook_call, &signer).await?;
-    println!(" Order book Registered: {}", result);
-    alice_nonce = alice_nonce + 1;
-    Ok(alice_nonce)
+    // let load_key = Pair::from_string("tube soldier vehicle position betray vibrant knife canyon armed accident desk flee",None);
+    // let mut signer = PairSigner::<NodeTemplateRuntime, _>::new(AccountKeyring::Alice.pair());
+    //
+    // let mut alice_nonce = 0;
+    // // Register BTC/USD Orderbook
+    // let register_orderbook_call = RegisterNewOrderbookCall {
+    //     quote_asset_id: 2 as u32,
+    //     base_asset_id: 1 as u32,
+    // };
+    // signer.set_nonce(alice_nonce);
+    // let result = client.submit(register_orderbook_call, &signer).await?;
+    // println!(" Order book Registered: {}", result);
+    // alice_nonce = alice_nonce + 1;
+    Ok(0 as u32)
 }
